@@ -1,13 +1,5 @@
-import { WebSocketServer } from "ws";
+import { createWSServer } from "./ws/gateway";
 
-const wss = new WebSocketServer({ port: 3001 });
+const PORT = Number(process.env.PORT) || 8080;
 
-wss.on("connection", (socket) => {
-  console.log("client connected");
-
-  socket.on("message", (data) => {
-    socket.send(data.toString());
-  });
-});
-
-console.log("WS server running on ws://localhost:3001");
+createWSServer(PORT);
