@@ -4,6 +4,24 @@ import { sessions } from "../state/session";
 import { rooms } from "../state/room";
 import { WSMessage } from "./types";
 
+function broadcastToRoom(
+  roomId: string,
+  message: any,
+  excludeSessionId?: string
+) {
+  const room = rooms.get(roomId);
+  if (!room) return;
+
+  for (const sId of room.sessions) {
+    if (excludeSessionId && sId === excludeSessionId) continue;
+
+    const s = sessions.get(sId);
+    if (!s) continue;
+
+    s.socket.send(JSON.stringify(message));
+  }
+}
+
 function handleMessage(sessionId: string, msg: any) {
   const session = sessions.get(sessionId);
   if (!session) return;
@@ -37,6 +55,17 @@ function handleMessage(sessionId: string, msg: any) {
           users: Array.from(room.members),
         },
       })
+    );
+    broadcastToRoom(
+      roomId,
+      {
+        type: "USER_JOINED",
+        payload: {
+          roomId,
+          userId: session.userId,
+        },
+      },
+      sessionId
     );
     break;
   }
